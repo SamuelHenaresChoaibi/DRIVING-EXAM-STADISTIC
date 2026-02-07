@@ -1,0 +1,15 @@
+/.venv/
+/venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Database / exports
+/driving_exams/data/*.db
+/driving_exams/data/*.sqlite
+/driving_exams/data/*.sqlite3
+
+# IDEs
+/.vscode/
+/.idea/
