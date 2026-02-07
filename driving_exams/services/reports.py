@@ -50,27 +50,27 @@ def export_pdf_report(
     page_h = writer.height()
     margin = int(page_w * 0.06)
     x0 = margin
-    y = margin
+    y = margin + 20
     content_w = page_w - (2 * margin)
 
-    title_font = QFont("Helvetica", 16)
-    body_font = QFont("Helvetica", 9)
-    small_font = QFont("Helvetica", 7)
+    title_font = QFont("Helvetica", 25, QFont.Weight.Bold)
+    body_font = QFont("Helvetica", 11)
+    small_font = QFont("Helvetica", 9)
 
     painter.setFont(title_font)
-    painter.drawText(QRect(x0, y, content_w, 60), Qt.AlignmentFlag.AlignLeft, "Driving Exams Report")
+    painter.drawText(QRect(x0, y, content_w, 200), Qt.AlignmentFlag.AlignLeft, "Driving Exams Report")
     y += 45
 
     painter.setFont(body_font)
     painter.drawText(
-        QRect(x0, y, content_w, 20),
+        QRect(x0, y, content_w, 200),
         Qt.AlignmentFlag.AlignLeft,
         f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M')}",
     )
     y += 18
 
     for line in _filters_to_lines(filters):
-        painter.drawText(QRect(x0, y, content_w, 20), Qt.AlignmentFlag.AlignLeft, line)
+        painter.drawText(QRect(x0, y, content_w, 200), Qt.AlignmentFlag.AlignLeft, line)
         y += 16
 
     passed = int(totals.get("passed", 0) or 0)
@@ -78,7 +78,7 @@ def export_pdf_report(
     attempted = passed + failed
     pass_rate = (passed / attempted * 100.0) if attempted else 0.0
     painter.drawText(
-        QRect(x0, y, content_w, 20),
+        QRect(x0, y, content_w, 200),
         Qt.AlignmentFlag.AlignLeft,
         f"Totals: Passed={passed} | Failed={failed} | Pass rate={pass_rate:.1f}%",
     )
@@ -104,8 +104,8 @@ def export_pdf_report(
         painter.setPen(pen)
 
         col_count = len(table_headers)
-        col_w = max(1, content_w // col_count)
-        row_h = 18
+        col_w = max(25, content_w // col_count)
+        row_h = 50
 
         def draw_row(values: list[str], y_pos: int, is_header: bool = False) -> None:
             painter.setFont(body_font if is_header else small_font)
