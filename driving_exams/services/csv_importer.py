@@ -24,6 +24,7 @@ REQUIRED_COLUMNS = [
 ]
 
 
+# Convierte un valor de texto a entero, devolviendo 0 si está vacío.
 def _to_int(value: str) -> int:
     value = (value or "").strip()
     if value == "":
@@ -32,6 +33,7 @@ def _to_int(value: str) -> int:
 
 
 @dataclass(frozen=True, slots=True)
+# Representa una fila del dataset de exámenes con tipos adecuados.
 class ExamRow:
     province: str
     exam_center: str
@@ -50,7 +52,9 @@ class ExamRow:
     num_failed: int
 
     @staticmethod
+    # Construye un ExamRow a partir de una fila CSV y un índice de columnas.
     def from_csv_row(row: list[str], idx: dict[str, int]) -> "ExamRow":
+        # Helper: obtiene y limpia el valor de una columna por nombre.
         def g(key: str) -> str:
             i = idx[key]
             return (row[i] if i < len(row) else "").strip()
@@ -73,6 +77,7 @@ class ExamRow:
             num_failed=_to_int(g("NUM_NO_APTOS")),
         )
 
+    # Devuelve la tupla lista para inserción en la base de datos.
     def as_db_tuple(self) -> tuple[object, ...]:
         return (
             self.province,
@@ -94,11 +99,13 @@ class ExamRow:
 
 
 @dataclass(frozen=True, slots=True)
+# Resultado de importación: filas normalizadas y periodos detectados (año/mes).
 class CsvImportResult:
     rows: list[ExamRow]
     periods: set[tuple[int, int]]  # (year, month)
 
 
+# Lee el archivo con un encoding específico y devuelve filas parseadas.
 def _read_with_encoding(path: Path, encoding: str) -> list[ExamRow]:
     with path.open("r", encoding=encoding, newline="") as f:
         reader = csv.reader(f, delimiter=";")
@@ -121,6 +128,7 @@ def _read_with_encoding(path: Path, encoding: str) -> list[ExamRow]:
         return rows
 
 
+# Lee un fichero CSV/TXT de la DGT probando varios encodings y valida columnas.
 def read_exam_file(path: str | Path) -> CsvImportResult:
     file_path = Path(path)
     if not file_path.exists():
@@ -137,4 +145,3 @@ def read_exam_file(path: str | Path) -> CsvImportResult:
             continue
 
     raise ValueError(f"Could not decode file: {file_path}. Last error: {last_error!r}")
-

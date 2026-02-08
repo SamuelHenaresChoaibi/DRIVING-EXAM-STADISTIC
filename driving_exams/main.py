@@ -13,7 +13,9 @@ from services.reports import export_pdf_report
 from ui.main_window_ui import Ui_MainWindow
 
 
+# Modelo Qt para mostrar los resultados en un QTableView.
 class ResultsTableModel(QtCore.QAbstractTableModel):
+    # Inicializa el modelo y define las columnas visibles.
     def __init__(self, rows: list[dict[str, Any]] | None = None) -> None:
         super().__init__()
         self._rows: list[dict[str, Any]] = rows or []
@@ -35,21 +37,25 @@ class ResultsTableModel(QtCore.QAbstractTableModel):
             ("Passed 5+", "num_passed_5plus"),
         ]
 
+    # Sustituye las filas del modelo y notifica a la vista.
     def set_rows(self, rows: list[dict[str, Any]]) -> None:
         self.beginResetModel()
         self._rows = rows
         self.endResetModel()
 
+    # Devuelve el número de filas del modelo.
     def rowCount(self, parent: QtCore.QModelIndex = QtCore.QModelIndex()) -> int:  # noqa: N802
         if parent.isValid():
             return 0
         return len(self._rows)
 
+    # Devuelve el número de columnas del modelo.
     def columnCount(self, parent: QtCore.QModelIndex = QtCore.QModelIndex()) -> int:  # noqa: N802
         if parent.isValid():
             return 0
         return len(self._columns)
 
+    # Devuelve el texto de los encabezados (columnas/filas) de la tabla.
     def headerData(  # noqa: N802
         self,
         section: int,
@@ -62,6 +68,7 @@ class ResultsTableModel(QtCore.QAbstractTableModel):
             return self._columns[section][0]
         return section + 1
 
+    # Devuelve el texto/alineación a mostrar para una celda concreta.
     def data(self, index: QtCore.QModelIndex, role: int = QtCore.Qt.ItemDataRole.DisplayRole) -> Any:  # noqa: N802
         if not index.isValid():
             return None
@@ -79,6 +86,7 @@ class ResultsTableModel(QtCore.QAbstractTableModel):
 
         return None
 
+    # Exporta la tabla como cabeceras + filas (texto) para reportes.
     def export_table(self) -> tuple[list[str], list[list[str]]]:
         headers = [title for title, _ in self._columns]
         rows: list[list[str]] = []
@@ -87,7 +95,9 @@ class ResultsTableModel(QtCore.QAbstractTableModel):
         return headers, rows
 
 
+# Ventana principal: filtros, tabla, gráfica y exportación.
 class MainWindow(QtWidgets.QMainWindow):
+    # Construye la UI, inicializa modelos y carga datos iniciales.
     def __init__(self, db: Database) -> None:
         super().__init__()
         self._db = db
@@ -112,12 +122,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self.refresh_filters()
         self.apply_filters()
 
+    # Cierra la base de datos al cerrar la ventana.
     def closeEvent(self, event) -> None:  # noqa: N802
         try:
             self._db.close()
         finally:
             super().closeEvent(event)
 
+    # Conecta señales/acciones de la UI con sus handlers.
     def _wire_signals(self) -> None:
         self.ui.actionImportCsv.triggered.connect(self.import_csv)
         self.ui.actionExit.triggered.connect(self.close)
@@ -130,9 +142,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.exportPdfChartAction.triggered.connect(lambda: self.export_pdf("chart"))
         self.ui.exportPdfBothAction.triggered.connect(lambda: self.export_pdf("both"))
 
+    # Devuelve el valor (data) actual seleccionado en un combo.
     def _combo_value(self, combo: QtWidgets.QComboBox) -> Any:
         return combo.currentData()
 
+    # Devuelve el valor seleccionado o el texto si el combo es editable.
     def _combo_selected_value(self, combo: QtWidgets.QComboBox) -> Any:
         data = combo.currentData()
         if data is not None:
@@ -142,6 +156,7 @@ class MainWindow(QtWidgets.QMainWindow):
         text = combo.currentText().strip()
         return text if text else None
 
+    # Rellena un combo con valores y mantiene la selección si es posible.
     def _set_combo_items(self, combo: QtWidgets.QComboBox, values: list[Any], formatter=str) -> None:
         current = combo.currentData()
         combo.blockSignals(True)
@@ -155,6 +170,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 combo.setCurrentIndex(idx)
         combo.blockSignals(False)
 
+    # Recarga los valores de filtros desde la base de datos.
     def refresh_filters(self) -> None:
         years = self._db.distinct_years()
         self._set_combo_items(self.ui.yearCombo, years, formatter=str)
@@ -165,14 +181,17 @@ class MainWindow(QtWidgets.QMainWindow):
         self._set_combo_items(self.ui.examTypeCombo, self._db.distinct_values("exam_type"))
         self._set_combo_items(self.ui.permitCombo, self._db.distinct_values("permit"))
 
+    # Handler: actualiza meses cuando cambia el año.
     def _on_year_changed(self) -> None:
         self._refresh_months()
 
+    # Rellena el combo de meses para el año seleccionado.
     def _refresh_months(self) -> None:
         year = self._combo_value(self.ui.yearCombo)
         months = self._db.distinct_months(year=year)
         self._set_combo_items(self.ui.monthCombo, months, formatter=lambda m: f"{m:02d}")
 
+    # Construye el diccionario de filtros a partir del estado de la UI.
     def current_filters(self) -> dict[str, Any]:
         filters: dict[str, Any] = {}
 
@@ -203,6 +222,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         return filters
 
+    # Aplica filtros: consulta DB, actualiza tabla, gráfica y barra de estado.
     def apply_filters(self) -> None:
         filters = self.current_filters()
         self._current_rows = self._db.fetch_rows(filters)
@@ -223,6 +243,7 @@ class MainWindow(QtWidgets.QMainWindow):
             f"Rows: {total_rows} | Passed: {passed} | Failed: {failed} | Pass rate: {pass_rate:.1f}%"
         )
 
+    # Resetea filtros/inputs a su estado inicial y recarga resultados.
     def clear_filters(self) -> None:
         for combo in [
             self.ui.yearCombo,
@@ -237,6 +258,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.schoolNameLineEdit.clear()
         self.apply_filters()
 
+    # Importa un CSV/TXT, lo inserta en la DB y refresca la vista.
     def import_csv(self) -> None:
         path_str, _ = QtWidgets.QFileDialog.getOpenFileName(
             self,
@@ -266,6 +288,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.refresh_filters()
         self.apply_filters()
 
+    # Exporta un reporte PDF (tabla, gráfica o ambos).
     def export_pdf(self, mode: str) -> None:
         include_table = mode in ("table", "both")
         include_chart = mode in ("chart", "both")
@@ -307,6 +330,7 @@ class MainWindow(QtWidgets.QMainWindow):
         QtWidgets.QMessageBox.information(self, "Export completed", f"Saved: {path_str}")
 
 
+# Punto de entrada: crea la app Qt, la DB y muestra la ventana principal.
 def main() -> int:
     app = QtWidgets.QApplication(sys.argv)
     app.setApplicationName("Driving Exams Statistics")

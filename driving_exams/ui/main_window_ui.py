@@ -3,7 +3,9 @@ from __future__ import annotations
 from PyQt6 import QtCore, QtGui, QtWidgets
 
 
+# UI generada para la ventana principal (widgets, layouts y traducciones).
 class Ui_MainWindow(object):
+    # Construye y coloca todos los widgets de la ventana principal.
     def setupUi(self, MainWindow: QtWidgets.QMainWindow) -> None:  # noqa: N802
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1200, 800)
@@ -126,6 +128,7 @@ class Ui_MainWindow(object):
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
+    # Asigna textos/labels a los widgets (soporta traducción).
     def retranslateUi(self, MainWindow: QtWidgets.QMainWindow) -> None:  # noqa: N802
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "Driving Exams Statistics"))
@@ -154,4 +157,3 @@ class Ui_MainWindow(object):
 
         self.tabs.setTabText(self.tabs.indexOf(self.tableTab), _translate("MainWindow", "Table"))
         self.tabs.setTabText(self.tabs.indexOf(self.chartTab), _translate("MainWindow", "Chart"))
-

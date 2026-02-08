@@ -8,6 +8,7 @@ from PyQt6.QtCore import QRect, Qt
 from PyQt6.QtGui import QFont, QImage, QPainter, QPdfWriter, QPen
 
 
+# Convierte el dict de filtros en líneas legibles para el reporte.
 def _filters_to_lines(filters: dict[str, Any]) -> list[str]:
     if not filters:
         return ["Filters: (none)"]
@@ -28,6 +29,7 @@ def _filters_to_lines(filters: dict[str, Any]) -> list[str]:
     return ["Filters: " + " | ".join(parts)] if parts else ["Filters: (none)"]
 
 
+# Genera un PDF con resumen, tabla y/o gráfica según la selección.
 def export_pdf_report(
     pdf_path: Path,
     filters: dict[str, Any],
@@ -61,6 +63,7 @@ def export_pdf_report(
     align_top_left = int(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
     align_vcenter_left = int(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
 
+    # Dibuja un bloque de texto ajustando altura, wrap y salto de página.
     def draw_text_block(text: str, font: QFont, *, wrap: bool = False, spacing_after: int = 0) -> None:
         nonlocal y
         painter.setFont(font)
@@ -135,6 +138,7 @@ def export_pdf_report(
             )
         header_h = max(row_h, header_max_text_h + (cell_pad_y * 2))
 
+        # Dibuja una fila de la tabla (cabecera o datos) con padding.
         def draw_row(values: list[str], y_pos: int, row_height: int, is_header: bool = False) -> None:
             painter.setFont(body_font if is_header else small_font)
             metrics = painter.fontMetrics()

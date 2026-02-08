@@ -8,6 +8,7 @@ from typing import Any
 from services.csv_importer import ExamRow
 
 
+# Error específico de la capa de base de datos.
 class DatabaseError(RuntimeError):
     pass
 
@@ -61,10 +62,12 @@ ALLOWED_DISTINCT_FIELDS = {
 }
 
 
+# Devuelve la fecha/hora actual en UTC en formato ISO-8601 (con sufijo Z).
 def _utc_now_iso() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
 
 
+# Construye la cláusula WHERE y parámetros SQL a partir de filtros de la UI.
 def _build_where(filters: dict[str, Any]) -> tuple[str, list[Any]]:
     clauses: list[str] = []
     params: list[Any] = []
@@ -90,7 +93,9 @@ def _build_where(filters: dict[str, Any]) -> tuple[str, list[Any]]:
     return where, params
 
 
+# Encapsula el acceso a SQLite y operaciones de importación/consulta.
 class Database:
+    # Abre la conexión, prepara el directorio y asegura el esquema.
     def __init__(self, db_path: Path) -> None:
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -100,13 +105,16 @@ class Database:
         self._conn.execute("PRAGMA foreign_keys = ON;")
         self.initialize_schema()
 
+    # Cierra la conexión con la base de datos.
     def close(self) -> None:
         self._conn.close()
 
+    # Crea tablas/índices si no existen.
     def initialize_schema(self) -> None:
         self._conn.executescript(SCHEMA_SQL)
         self._conn.commit()
 
+    # Comprueba si un periodo (año/mes) ya fue importado.
     def is_period_imported(self, year: int, month: int) -> bool:
         cur = self._conn.execute(
             "SELECT 1 FROM imported_periods WHERE year = ? AND month = ? LIMIT 1",
@@ -114,10 +122,12 @@ class Database:
         )
         return cur.fetchone() is not None
 
+    # Devuelve los años disponibles en el dataset.
     def distinct_years(self) -> list[int]:
         cur = self._conn.execute("SELECT DISTINCT year FROM exam_results ORDER BY year DESC")
         return [int(r[0]) for r in cur.fetchall()]
 
+    # Devuelve los meses disponibles (filtrando por año opcionalmente).
     def distinct_months(self, year: int | None = None) -> list[int]:
         if year is None:
             cur = self._conn.execute("SELECT DISTINCT month FROM exam_results ORDER BY month ASC")
@@ -128,6 +138,7 @@ class Database:
             )
         return [int(r[0]) for r in cur.fetchall()]
 
+    # Devuelve valores distintos para un campo permitido (para combos de filtros).
     def distinct_values(self, field: str) -> list[str]:
         if field not in ALLOWED_DISTINCT_FIELDS:
             raise DatabaseError(f"Unsupported distinct field: {field}")
@@ -135,6 +146,7 @@ class Database:
         cur = self._conn.execute(f"SELECT DISTINCT {column} FROM exam_results ORDER BY {column} ASC")  # noqa: S608
         return [str(r[0]) for r in cur.fetchall() if r[0] is not None]
 
+    # Importa filas, evita duplicados y registra los periodos importados.
     def import_exam_rows(self, rows: list[ExamRow], source_file: str | None = None) -> int:
         if not rows:
             raise DatabaseError("No data rows found in the selected file.")
@@ -173,6 +185,7 @@ class Database:
 
         return int(inserted)
 
+    # Devuelve las filas detalladas para pintar la tabla principal.
     def fetch_rows(self, filters: dict[str, Any]) -> list[dict[str, Any]]:
         where, params = _build_where(filters)
         sql = """
@@ -190,6 +203,7 @@ class Database:
         cur = self._conn.execute(sql, params)
         return [dict(r) for r in cur.fetchall()]
 
+    # Devuelve totales agregados de aprobados/suspensos para los filtros.
     def fetch_totals(self, filters: dict[str, Any]) -> dict[str, int]:
         where, params = _build_where(filters)
         sql = "SELECT SUM(num_passed) AS passed, SUM(num_failed) AS failed FROM exam_results"
@@ -201,6 +215,7 @@ class Database:
             return {"passed": 0, "failed": 0}
         return {"passed": int(row["passed"] or 0), "failed": int(row["failed"] or 0)}
 
+    # Devuelve totales agrupados por tipo de examen para la gráfica.
     def fetch_totals_by_exam_type(self, filters: dict[str, Any]) -> list[dict[str, Any]]:
         where, params = _build_where(filters)
         sql = """
@@ -216,4 +231,3 @@ class Database:
 
         cur = self._conn.execute(sql, params)
         return [dict(r) for r in cur.fetchall()]
-

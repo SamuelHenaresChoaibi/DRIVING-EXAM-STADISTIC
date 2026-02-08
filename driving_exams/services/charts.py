@@ -6,13 +6,16 @@ from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
 
+# Canvas de Matplotlib embebido en Qt para mostrar gráficas de resultados.
 class ExamsChartCanvas(FigureCanvas):
+    # Inicializa la figura y el eje principal de la gráfica.
     def __init__(self, parent=None) -> None:
         self._figure = Figure(figsize=(6, 4), tight_layout=True)
         self._ax = self._figure.add_subplot(111)
         super().__init__(self._figure)
         self.setParent(parent)
 
+    # Dibuja una gráfica apilada (aprobados/suspensos) por tipo de examen.
     def plot_exam_type_totals(self, rows: list[dict[str, Any]]) -> None:
         self._ax.clear()
 
@@ -37,4 +40,3 @@ class ExamsChartCanvas(FigureCanvas):
         self._ax.set_xticklabels(labels, rotation=30, ha="right")
         self._ax.legend()
         self.draw()
-
