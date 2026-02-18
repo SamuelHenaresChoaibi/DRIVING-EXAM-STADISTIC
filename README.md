@@ -32,7 +32,7 @@ Steps used to generate the Windows executable with PyInstaller:
    - `pyinstaller --clean --noconfirm main.spec`
 
 3) Output executable:
-   - `driving_exams/dist/main.exe`
+   - `driving_exams/dist/DGT Stadistic Exams.exe`
    - Final renamed file used in this project: `driving_exams/dist/DGT Stadistic Exams.exe`
 
 Icon used for the executable:
