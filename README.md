@@ -20,3 +20,20 @@ Download the monthly export from DGT (semicolon-separated TXT/CSV) and import it
 The database tracks already imported periods (`year`, `month`) and prevents importing the same period twice.
 
 The SQLite database is created on first run at `driving_exams/data/driving_exams.db`.
+
+## Windows executable (PyInstaller)
+Steps used to generate the Windows executable with PyInstaller:
+
+1) Install PyInstaller in the virtualenv:
+   - `pip install pyinstaller`
+
+2) Build from the `driving_exams` folder using the project spec file:
+   - `cd driving_exams`
+   - `pyinstaller --clean --noconfirm main.spec`
+
+3) Output executable:
+   - `driving_exams/dist/main.exe`
+   - Final renamed file used in this project: `driving_exams/dist/DGT Stadistic Exams.exe`
+
+Icon used for the executable:
+- `driving_exams/dgt.ico`
