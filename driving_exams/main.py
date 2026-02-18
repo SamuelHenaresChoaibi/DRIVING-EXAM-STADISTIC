@@ -4,14 +4,28 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from PyQt6 import QtCore, QtWidgets
+from PyQt6 import QtCore, QtWidgets, QtGui
+from PyQt6.QtCore import QStandardPaths
 
-from services.charts import ExamsChartCanvas
-from services.csv_importer import read_exam_file
-from services.database import Database, DatabaseError
-from services.reports import export_pdf_report
-from ui.main_window_ui import Ui_MainWindow
+from driving_exams.services.charts import ExamsChartCanvas
+from driving_exams.services.csv_importer import read_exam_file
+from driving_exams.services.database import Database, DatabaseError
+from driving_exams.services.reports import export_pdf_report
+from driving_exams.ui.main_window_ui import Ui_MainWindow
 
+
+
+def _user_db_path() -> Path:
+    data_dir = Path(
+        QStandardPaths.writableLocation(QStandardPaths.StandardLocation.AppDataLocation)
+    )
+    data_dir.mkdir(parents=True, exist_ok=True)
+    return data_dir / "driving_exams.db"
+
+
+def _icon_path() -> Path:
+    base_dir = Path(__file__).resolve().parent
+    return base_dir / "ui" / "icon" / "icon.png"
 
 # Modelo Qt para mostrar los resultados en un QTableView.
 class ResultsTableModel(QtCore.QAbstractTableModel):
@@ -334,9 +348,14 @@ class MainWindow(QtWidgets.QMainWindow):
 def main() -> int:
     app = QtWidgets.QApplication(sys.argv)
     app.setApplicationName("Driving Exams Statistics")
+    app.setOrganizationName("Izan")
 
-    base_dir = Path(__file__).resolve().parent
-    db_path = base_dir / "data" / "driving_exams.db"
+    icon = _icon_path()
+    if icon.exists():
+        app.setWindowIcon(QtGui.QIcon(str(icon)))
+
+    db_path = _user_db_path()
+    print(f"[DRIVING-EXAMS] Database path: {db_path}")
     db = Database(db_path)
 
     window = MainWindow(db)

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Driving Exam Statistic
+Comment=Análisis de exámenes DGT (PyQt6)
+Exec=driving-exam-statistic
+Icon=driving-exam-statistic
+Terminal=false
+Categories=Education;Utility;
+StartupNotify=true

@@ -1,0 +1,25 @@
+[project]
+name = "driving-exam-statistic"
+version = "0.1.0"
+description = "Aplicación de escritorio PyQt6 para analizar estadísticas de exámenes DGT."
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [{ name = "Izan" }]
+dependencies = [
+  "PyQt6>=6.6",
+  "matplotlib>=3.8",
+]
+
+[project.scripts]
+driving-exam-statistic = "driving_exams.main:main"
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["driving_exams*"]

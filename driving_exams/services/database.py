@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from services.csv_importer import ExamRow
+from driving_exams.services.csv_importer import ExamRow
 
 
 # Error específico de la capa de base de datos.

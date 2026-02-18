@@ -1,0 +1,42 @@
+# Maintainer: izan
+# Build local (construccion):
+#   ./packaging/arch/make_source_tarball.sh
+#   cd packaging/arch
+#   makepkg -Csf
+#   sudo pacman -U ./*.pkg.tar.zst
+
+pkgname=driving-exam-statistic
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="Aplicación PyQt6 para analizar estadísticas de exámenes DGT"
+arch=('any')
+url="https://github.com/IzanMorenoNunez/DRIVING-EXAM-STADISTIC"
+license=('custom')
+depends=(
+  'python'
+  'python-pyqt6'
+  'python-matplotlib'
+)
+makedepends=(
+  'python-build'
+  'python-installer'
+  'python-setuptools'
+  'python-wheel'
+)
+source=("${pkgname}-${pkgver}.tar.gz")
+sha256sums=('SKIP')
+
+build() {
+  cd "$srcdir/$pkgname-$pkgver"
+  python -m build --wheel --no-isolation
+}
+
+package() {
+  cd "$srcdir/$pkgname-$pkgver"
+  python -m installer --destdir="$pkgdir" dist/*.whl
+
+  install -Dm0644 packaging/deb/driving-exam-statistic.desktop \
+    "$pkgdir/usr/share/applications/driving-exam-statistic.desktop"
+  install -Dm0644 driving_exams/ui/icon/icon.png \
+    "$pkgdir/usr/share/icons/hicolor/256x256/apps/driving-exam-statistic.png"
+}
